@@ -1,0 +1,39 @@
+.css-y5vkr9,.css-1af83xj{background: rgba(14, 14, 35, 1)}
+.css-btb94x-MuiButtonBase-root-MuiIconButton-root,.css-w8itad-MuiIcon-root,.css-1uf0tls{color: #fff;}
+.css-xhd3h8{background: rgba(36, 36, 62, 1);}
+
+
+.login-conent.css-1if55n1{max-width: 400px;text-align: left;padding: 0;margin: 0 auto;}
+.login-conent input{background:#232A3B;border-radius: 8px;box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.1);color: rgba(255,255,255,.5);}
+.login-conent .css-186xcr5{color: #fff;}
+.login-button,.login-button .MuiButton-root  {min-width:100%;;border: 0;background-color: rgba(255, 255, 255, 0.9);border-radius: 8px;color: rgba(14, 14, 35, 1);font-weight: bold;text-transform: uppercase; }
+
+.main-profile-img {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border-style: solid;
+    border-color: #FFFFFF;
+    box-shadow: 0 0 8px 3px #1d0c0c;
+}
+.custom-input input:before{
+    content: "";
+    background-image: url("Assets/edit-white.png");
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+.custom-input input{
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    /* top: 5px; */
+    right: -3px;
+    /* bottom: 63px; */
+    margin-top: 88px;
+}
+.custom-input{
+    width: fit-content;
+    margin: 0 auto;
+    position: relative;
+}
