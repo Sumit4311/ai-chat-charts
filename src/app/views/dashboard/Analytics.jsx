@@ -87,6 +87,9 @@ const AutoComplete = styled(Autocomplete)(() => ({
     marginBottom: '16px',
 }))
 
+
+
+
 const Heading = styled('h6')(({ theme }) => ({
     margin: 0,
     marginTop: '4px',
@@ -304,6 +307,26 @@ const Analytics = () => {
         onerevenueDatayear: 'onerevenueDatayear_0',
         ebitdaGraphopt: 'ebitdaGraphopt_0',
     })
+    
+//     return (
+//   <Box>
+//     <button onClick={() => navigate('/fingenie-chatbot')} 
+//       style={{
+//         padding: '10px 20px',
+//         marginTop: '16px',
+//         backgroundColor: '#fff',
+//         color: '#0E0E23',
+//         borderRadius: '8px',
+//         border: '1px solid #fff',
+//         textTransform: 'uppercase',
+//         cursor: 'pointer'
+//       }}
+//     >
+//       FinGenie
+//     </button>
+//   </Box>
+// )
+
 
     const handleChange = (event, newValue) => {
         setValue(newValue)

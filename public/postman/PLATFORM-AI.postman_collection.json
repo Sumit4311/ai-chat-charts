@@ -1,0 +1,91 @@
+{
+	"info": {
+		"_postman_id": "ad2bb59c-7a10-44bf-821d-e1cb5a1c0662",
+		"name": "PLATFORM-AI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27403198",
+		"_collection_link": "https://warped-sunset-692839.postman.co/workspace/Solcon-Workspace~d27aee2d-cd03-4c58-a71f-7e467fe8c436/collection/27403198-ad2bb59c-7a10-44bf-821d-e1cb5a1c0662?action=share&source=collection_link&creator=27403198"
+	},
+	"item": [
+		{
+			"name": "Query",
+			"item": [
+				{
+					"name": "chat-question",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"question\": \"How Inala Broadcast Performed for last 3 quarters of year 2025\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}query",
+							"host": [
+								"{{baseUrl}}query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "chart-question",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"question\": \"How Inala Broadcast Performed for last 3 quarters of year 2025\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}query/chart",
+							"host": [
+								"{{baseUrl}}query"
+							],
+							"path": [
+								"chart"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "table-question",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"question\": \"How Inala Broadcast Performed for last 3 quarters of year 2025\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}query/table",
+							"host": [
+								"{{baseUrl}}query"
+							],
+							"path": [
+								"table"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

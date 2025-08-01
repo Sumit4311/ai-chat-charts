@@ -81,6 +81,7 @@ companies.map((companyList,index) => {
                                     },
                                 ],
                     },
+                     
                 
         ],
     })
@@ -141,6 +142,14 @@ export const navigations = [
         icon: 'rate_review',
         toplevelmenu : 'true'
     },
+     {
+        name: "FinGenie",
+        path: "/fingenie-chatbot",
+        icon: "chat",
+        toplevelmenu : 'true'
+    }
+
+
     
     /*{
         label: 'PAGES',

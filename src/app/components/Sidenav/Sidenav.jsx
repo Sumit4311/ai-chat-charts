@@ -219,6 +219,13 @@ const Sidenav = ({ children }) => {
                         icon: 'rate_review',
                         toplevelmenu: 'true'
                     },
+                    {
+                        name: "FinGenie",
+                        path: "/fingenie-chatbot",
+                        icon: "chat",
+                        toplevelmenu : 'true'
+                     }
+
                 ]
             } else if (roles === 'admin') {
                 menus = [
@@ -269,6 +276,14 @@ const Sidenav = ({ children }) => {
                         icon: 'rate_review',
                         toplevelmenu: 'true'
                     },
+                     {
+        name: "FinGenie",
+        path: "/fingenie-chatbot",
+        icon: "chat",
+        toplevelmenu : 'true'
+    }
+
+
                 ]
             } else if (roles === 'shareholder') {
                 menus = [
@@ -307,6 +322,13 @@ const Sidenav = ({ children }) => {
                             },
                         ],
                     },
+                     {
+        name: "FinGenie",
+        path: "/fingenie-chatbot",
+        icon: "chat",
+        toplevelmenu : 'true'
+    }
+
                 ]
             } else if (roles === 'companyadmin') {
                 if (companylistmenu && companylistmenu?.length > 0) {
@@ -341,9 +363,15 @@ const Sidenav = ({ children }) => {
                             icon: 'rate_review',
                             toplevelmenu: 'true'
                         },
-                    ]
+                        {
+        name: "FinGenie",
+        path: "/fingenie-chatbot",
+        icon: "chat",
+        toplevelmenu : 'true'
+    }]
 
                 }
+        
                 else {
                     menus = [
                         {
@@ -358,8 +386,14 @@ const Sidenav = ({ children }) => {
                             icon: 'rate_review',
                             toplevelmenu: 'true'
                         },
-                    ]
-                }
+                        {
+        name: "FinGenie",
+        path: "/fingenie-chatbot",
+        icon: "chat",
+        toplevelmenu : 'true'
+    },]
+
+        }
             } else if (roles === 'companyuser') {
                 if (companylistmenu && companylistmenu.length > 0) {
                     const companyId = companylistmenu[0].companyid
@@ -385,6 +419,13 @@ const Sidenav = ({ children }) => {
                             icon: 'rate_review',
                             toplevelmenu: 'true'
                         },
+                        {
+        name: "FinGenie",
+        path: "/fingenie-chatbot",
+        icon: "chat",
+        toplevelmenu : 'true'
+    }
+
                     ]
                 }
                 else {
@@ -408,6 +449,13 @@ const Sidenav = ({ children }) => {
                             icon: 'rate_review',
                             toplevelmenu: 'true'
                         },
+                        {
+        name: "FinGenie",
+        path: "/fingenie-chatbot",
+        icon: "chat",
+        toplevelmenu : 'true'
+    }
+
                     ]
                 }
             }

@@ -4,6 +4,10 @@ import useSettings from 'app/hooks/useSettings'
 import { Button, Toolbar, AppBar, ThemeProvider } from '@mui/material'
 import { styled, useTheme } from '@mui/system'
 import { topBarHeight } from 'app/utils/constant'
+import { useLocation } from 'react-router-dom';
+
+
+
 
 const AppFooter = styled(Toolbar)(() => ({
     display: 'flex',
@@ -37,31 +41,29 @@ const Footer = () => {
     const { settings } = useSettings()
 
     const footerTheme = settings.themes[settings.footer.theme] || theme
+    const location = useLocation();
+    const isChatbotPage = location.pathname.includes('/fingenie-chatbot');
 
-    return (
-        <ThemeProvider theme={footerTheme}>
-            <AppBar
-                color="primary"
-                position="static"
-                sx={{ zIndex: 96 }}
-            >
-                <AppFooter>
-                    <FooterContent>
-                        <a href="#">
-                           
-                                @2022 Solcon Capital. All Rights Reserved
-                            
-                        </a>
-                        <Span sx={{ m: "auto" }}></Span>
-                        {/*<Paragraph sx={{ m: 0 }}>
-                            Design and Developed by{' '}
-                            <a href="http://ui-lib.com">UI Lib</a>
-                        </Paragraph>*/}
-                    </FooterContent>
-                </AppFooter>
-            </AppBar>
-        </ThemeProvider>
-    )
+  if (isChatbotPage) return null;
+
+return (
+    <ThemeProvider theme={footerTheme}>
+        <AppBar
+            color="primary"
+            position="static"
+            sx={{ zIndex: 96 }}
+        >
+            <AppFooter>
+                <FooterContent>
+                    <a href="#">
+                        @2022 Solcon Capital. All Rights Reserved
+                    </a>
+                    <Span sx={{ m: "auto" }}></Span>
+                </FooterContent>
+            </AppFooter>
+        </AppBar>
+    </ThemeProvider>
+);
 }
 
 export default Footer
