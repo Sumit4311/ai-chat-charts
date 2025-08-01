@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {
+import { 
   Box,
   IconButton,
   Paper,
@@ -9,10 +9,21 @@ import {
   InputBase,
   Button,
 } from '@mui/material';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import HistoryIcon from '@mui/icons-material/History';
 import RefreshIcon from '@mui/icons-material/Refresh';
+
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const ChatPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,68 +35,120 @@ const ChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [chartData, setChartData] = useState(null);
 
   const BASE_URL = process.env.REACT_APP_BASE_URL || 'https://ai.solcon.instagrp.in/api/v1/';
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
+  if (!inputValue.trim()) return;
 
-    const userMessage = {
-      sender: 'user',
-      text: inputValue,
-      role: 'user',
-      sessionId: currentSessionId,
-    };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setInputValue('');
-    setLoading(true);
+  const userMessage = {
+    sender: 'user',
+    text: inputValue,
+    role: 'user',
+    sessionId: currentSessionId,
+  };
+  const updatedMessages = [...messages, userMessage];
+  setMessages(updatedMessages);
+  setInputValue('');
+  setLoading(true);
 
-    try {
-      let endpoint = 'query';
-      if (tool === 'chart') endpoint = 'query/chart';
-      else if (tool === 'table') endpoint = 'query/table';
-      else if (tool === 'document') endpoint = 'query/document';
+  try {
+    let endpoint = 'query';
+    if (tool === 'chart') endpoint = 'query/chart';
+    else if (tool === 'table') endpoint = 'query/table';
+    else if (tool === 'document') endpoint = 'query/document';
 
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ question: userMessage.text }),
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ question: userMessage.text }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error Response:', errorText);
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("API Response:", data);
+
+    const extractedYear = (() => {
+      const yearMatch = userMessage.text.match(/\b(20\d{2})\b/);
+      return yearMatch ? yearMatch[1] : new Date().getFullYear().toString();
+    })();
+
+    let formattedChartData = null;
+
+    if (data?.chartData?.labels && data?.chartData?.values) {
+      const { labels, values } = data.chartData;
+      const yearSuffix = extractedYear.slice(-2); 
+      const convertedLabels = labels.map((_, index) => {
+        const quarter = Math.floor(index / 3) + 1;
+        return `Q${quarter}FY${yearSuffix}`;
       });
+      formattedChartData = { labels: convertedLabels, values };
+    }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("API Response:", data);
-
-      const botMessage = {
-      sender: 'bot',
-      text: data?.answer || data?.response || data?.data || JSON.stringify(data) || 'No answer received from model.',
+    const botMessage = {
+  sender: 'bot',
+  text:
+    typeof data?.answer === 'string' ? data.answer :
+    typeof data?.response === 'string' ? data.response :
+    typeof data?.data === 'string' ? data.data :
+    typeof data?.message === 'string' ? data.message :
+    JSON.stringify(data),
+      chartData: tool === 'chart' ? (formattedChartData || data?.chartData || null) : null,
       role: 'bot',
       sessionId: currentSessionId,
-      };
+    };
 
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error('Error fetching response from API:', error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: 'bot',
-          text: 'Error fetching response from API.',
-          role: 'bot',
-          sessionId: currentSessionId,
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+    setMessages((prev) => [...prev, botMessage]);
+  } catch (error) {
+    console.error('Error fetching response from API:', error);
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: 'bot',
+        text: 'Error fetching response from API.',
+        role: 'bot',
+        sessionId: currentSessionId,
+      },
+    ]);
+  } finally {
+    setLoading(false);
+  }
+};
+        const renderChart = (chartData) => {
+        if (!chartData?.type || !chartData?.labels || !chartData?.values) return null;
+
+        const data = {
+          labels: chartData.labels,
+          datasets: [
+            {
+              label: 'Data',
+              data: chartData.values,
+              backgroundColor: '#3f51b5',
+            },
+          ],
+        };
+
+        const options = {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+          },
+        };
+
+        return (
+          <Box my={2}>
+            <Bar data={data} options={options} />
+          </Box>
+        );
+      };
 
   const generateTitleFromMessages = (msgs) => {
     const userMsg = msgs.find(msg => msg.role === 'user');
@@ -145,13 +208,28 @@ const ChatPage = () => {
           throw new Error(`Retry request failed with status ${response.status}`);
         }
         const data = await response.json();
+        const formattedChartData =
+          data?.chart_type && data?.data?.labels && data?.data?.values
+            ? {
+                type: data.chart_type,
+                labels: data.data.labels,
+                values: data.data.values,
+              }
+            : null;
 
         const botMessage = {
           sender: 'bot',
-          text: data?.answer || data?.response || data?.data || JSON.stringify(data) || 'No answer received from model. Please try again.',
+          text:
+            typeof data?.answer === 'string' ? data.answer :
+            typeof data?.response === 'string' ? data.response :
+            typeof data?.data === 'string' ? data.data :
+            typeof data?.message === 'string' ? data.message :
+            JSON.stringify(data),
+          chartData: tool === 'chart' ? (formattedChartData || data?.chartData || null) : null,
           role: 'bot',
           sessionId: currentSessionId,
         };
+
 
         setMessages((prev) => [
           ...prev.slice(0, indexToUpdate + 1),
@@ -313,13 +391,15 @@ const ChatPage = () => {
       paddingBottom: '100px', 
     }}
   >
-    {currentSessionMessages.map((msg, index) => (
+   {currentSessionMessages.map((msg, index) => (
   <Box
     key={index}
     my={1}
     display="flex"
     justifyContent={msg.role === 'user' ? 'flex-end' : 'flex-start'}
     position="relative"
+    flexDirection="column"
+    alignItems={msg.role === 'user' ? 'flex-end' : 'flex-start'}
   >
     <Box
       px={2}
@@ -330,31 +410,40 @@ const ChatPage = () => {
       sx={{
         color: msg.role === 'user' ? '#fff' : 'rgba(255,255,255,0.8)',
         whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
       }}
     >
-      {msg.text}
-      {msg.role === 'user' && (
-        <IconButton
-          size="small"
-          onClick={() => handleRetry(msg, index)}
-          sx={{
-            color: 'white',
-            ml: 1,
-            position: 'absolute',
-            top: -10,
-            right: -10,
-            backgroundColor: '#444',
-            '&:hover': {
-              backgroundColor: '#666',
-            },
-          }}
-        >
-          <RefreshIcon fontSize="small" />
-        </IconButton>
-      )}
+      {typeof msg.text === 'string' ? msg.text : JSON.stringify(msg.text)}
     </Box>
+   
+    {msg.chartData && (
+      <Box width="100%" maxWidth="70%">
+        {renderChart(msg.chartData)}
+      </Box>
+    )}
+
+    {msg.role === 'user' && (
+      <IconButton
+        size="small"
+        onClick={() => handleRetry(msg, index)}
+        sx={{
+          color: 'white',
+          ml: 1,
+          position: 'absolute',
+          top: -10,
+          right: -10,
+          backgroundColor: '#444',
+          '&:hover': {
+            backgroundColor: '#666',
+          },
+        }}
+      >
+        <RefreshIcon fontSize="small" />
+      </IconButton>
+    )}
   </Box>
 ))}
+
   </Box>
         <Paper
       sx={{
