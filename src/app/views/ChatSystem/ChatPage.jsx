@@ -82,17 +82,46 @@ const ChatPage = () => {
 
     let formattedChartData = null;
 
-    if (data?.chartData?.labels && data?.chartData?.values) {
-      const { labels, values } = data.chartData;
-      const yearSuffix = extractedYear.slice(-2); 
-      const convertedLabels = labels.map((_, index) => {
-        const quarter = Math.floor(index / 3) + 1;
-        return `Q${quarter}FY${yearSuffix}`;
-      });
-      formattedChartData = { labels: convertedLabels, values };
-    }
+const extractQuarterlyRevenueFromText = (text) => {
+  const regex = /Q([1-4])[^$0-9]*\$?([\d.,]+)\s*(million|M)?/gi;
+  const quarters = {};
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const quarter = `Q${match[1]}`;
+    let revenue = parseFloat(match[2].replace(/,/g, ''));
+    if (match[3]) revenue *= 1_000_000;
+    quarters[quarter] = { revenue, budget: 0, sales: 0 };
+  }
 
-    const botMessage = {
+  const labels = [];
+  const values = [];
+  ['Q1', 'Q2', 'Q3', 'Q4'].forEach((q) => {
+    if (quarters[q]) {
+      labels.push(q);
+      values.push(quarters[q]);
+    }
+  });
+  return { labels, values };
+};
+
+if (data?.chartData?.labels && data?.chartData?.values) {
+  const { labels, values } = data.chartData;
+  formattedChartData = { labels, values };
+} else if (tool === 'chart' && Array.isArray(data?.data)) {
+  const labels = data.data.map((item) => item.label);
+  const values = data.data.map((item) => item.value);
+  formattedChartData = { labels, values };
+} else if (tool === 'chart' && typeof data?.data === 'string') {
+  const parsed = extractQuarterlyRevenueFromText(data.data);
+  if (parsed.labels.length && parsed.values.length) {
+    formattedChartData = {
+      labels: parsed.labels,
+      values: parsed.values.map((v) => v.revenue),
+    };
+  }
+}
+
+  const botMessage = {
   sender: 'bot',
   text:
     typeof data?.answer === 'string' ? data.answer :
@@ -103,9 +132,7 @@ const ChatPage = () => {
       chartData: tool === 'chart' ? (formattedChartData || data?.chartData || null) : null,
       role: 'bot',
       sessionId: currentSessionId,
-    };
-
-
+  };
     setMessages((prev) => [...prev, botMessage]);
   } catch (error) {
     console.error('Error fetching response from API:', error);
@@ -113,7 +140,7 @@ const ChatPage = () => {
       ...prev,
       {
         sender: 'bot',
-        text: 'Error fetching response from API.',
+        text: 'Please try again.',
         role: 'bot',
         sessionId: currentSessionId,
       },
@@ -122,33 +149,41 @@ const ChatPage = () => {
     setLoading(false);
   }
 };
-        const renderChart = (chartData) => {
-        if (!chartData?.type || !chartData?.labels || !chartData?.values) return null;
+  
+  const renderChart = (chartData) => {
+  if (!chartData?.type || !chartData?.labels || !chartData?.values) return null;
 
-        const data = {
-          labels: chartData.labels,
-          datasets: [
-            {
-              label: 'Data',
-              data: chartData.values,
-              backgroundColor: '#3f51b5',
-            },
-          ],
-        };
+  const data = {
+    labels: chartData.labels,
+    datasets: [
+      {
+        label: 'Data',
+        data: chartData.values,
+        backgroundColor: '#3f51b5',
+      },
+    ],
+  };
 
-        const options = {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-          },
-        };
-
-        return (
-          <Box my={2}>
-            <Bar data={data} options={options} />
-          </Box>
-        );
-      };
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        labels: {
+          color: 'white',
+        },
+      },
+    },
+    scales: {
+      x: {
+        ticks: { color: 'white' },
+      },
+      y: {
+        ticks: { color: 'white' },
+      },
+    },
+  };
+  return <Bar data={data} options={options} />;
+};
 
   const generateTitleFromMessages = (msgs) => {
     const userMsg = msgs.find(msg => msg.role === 'user');
@@ -229,9 +264,7 @@ const ChatPage = () => {
           role: 'bot',
           sessionId: currentSessionId,
         };
-
-
-        setMessages((prev) => [
+         setMessages((prev) => [
           ...prev.slice(0, indexToUpdate + 1),
           botMessage,
           ...prev.slice(indexToUpdate + 2),
@@ -362,7 +395,7 @@ const ChatPage = () => {
           <IconButton onClick={() => setSidebarOpen(true)} sx={{ color: '#fff' }}>
             <HistoryIcon />
           </IconButton>
-
+          
           <Select
             value={model}
             onChange={(e) => setModel(e.target.value)}
