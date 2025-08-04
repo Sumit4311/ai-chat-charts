@@ -75,64 +75,50 @@ const ChatPage = () => {
     const data = await response.json();
     console.log("API Response:", data);
 
-    const extractedYear = (() => {
-      const yearMatch = userMessage.text.match(/\b(20\d{2})\b/);
-      return yearMatch ? yearMatch[1] : new Date().getFullYear().toString();
-    })();
-
     let formattedChartData = null;
 
-const extractQuarterlyRevenueFromText = (text) => {
-  const regex = /Q([1-4])[^$0-9]*\$?([\d.,]+)\s*(million|M)?/gi;
-  const quarters = {};
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    const quarter = `Q${match[1]}`;
-    let revenue = parseFloat(match[2].replace(/,/g, ''));
-    if (match[3]) revenue *= 1_000_000;
-    quarters[quarter] = { revenue, budget: 0, sales: 0 };
-  }
-
-  const labels = [];
-  const values = [];
-  ['Q1', 'Q2', 'Q3', 'Q4'].forEach((q) => {
-    if (quarters[q]) {
-      labels.push(q);
-      values.push(quarters[q]);
+    // --- NEW: Parse flat table data for chart ---
+    if (
+      tool === 'chart' &&
+      data?.data?.response_type === 'table' &&
+      Array.isArray(data?.data?.data)
+    ) {
+      // Group by quarters
+      const rows = [];
+      let row = {};
+      data.data.data.forEach((item, idx) => {
+        row[item.column] = item.value;
+        // Each row has 3 columns, so push every 3rd item
+        if ((idx + 1) % 3 === 0) {
+          rows.push(row);
+          row = {};
+        }
+      });
+      // Now rows = [{quarter: 'Q4', revenue: ..., product_sales: ...}, ...]
+      const labels = rows.map(r => r.quarter);
+      const values = rows.map(r => Number(r.revenue));
+      formattedChartData = { labels, values };
     }
-  });
-  return { labels, values };
-};
+    // --- END NEW ---
 
-if (data?.chartData?.labels && data?.chartData?.values) {
-  const { labels, values } = data.chartData;
-  formattedChartData = { labels, values };
-} else if (tool === 'chart' && Array.isArray(data?.data)) {
-  const labels = data.data.map((item) => item.label);
-  const values = data.data.map((item) => item.value);
-  formattedChartData = { labels, values };
-} else if (tool === 'chart' && typeof data?.data === 'string') {
-  const parsed = extractQuarterlyRevenueFromText(data.data);
-  if (parsed.labels.length && parsed.values.length) {
-    formattedChartData = {
-      labels: parsed.labels,
-      values: parsed.values.map((v) => v.revenue),
-    };
-  }
-}
+    // Existing chartData logic (keep for other cases)
+    if (!formattedChartData && data?.chartData?.labels && data?.chartData?.values) {
+      const { labels, values } = data.chartData;
+      formattedChartData = { labels, values };
+    }
 
-  const botMessage = {
-  sender: 'bot',
-  text:
-    typeof data?.answer === 'string' ? data.answer :
-    typeof data?.response === 'string' ? data.response :
-    typeof data?.data === 'string' ? data.data :
-    typeof data?.message === 'string' ? data.message :
-    JSON.stringify(data),
+    const botMessage = {
+      sender: 'bot',
+      text:
+        typeof data?.answer === 'string' ? data.answer :
+        typeof data?.response === 'string' ? data.response :
+        typeof data?.data === 'string' ? data.data :
+        typeof data?.message === 'string' ? data.message :
+        JSON.stringify(data),
       chartData: tool === 'chart' ? (formattedChartData || data?.chartData || null) : null,
       role: 'bot',
       sessionId: currentSessionId,
-  };
+    };
     setMessages((prev) => [...prev, botMessage]);
   } catch (error) {
     console.error('Error fetching response from API:', error);
@@ -149,9 +135,9 @@ if (data?.chartData?.labels && data?.chartData?.values) {
     setLoading(false);
   }
 };
-  
+ 
   const renderChart = (chartData) => {
-  if (!chartData?.type || !chartData?.labels || !chartData?.values) return null;
+  if (!chartData?.labels || !chartData?.values) return null;
 
   const data = {
     labels: chartData.labels,
@@ -450,11 +436,10 @@ if (data?.chartData?.labels && data?.chartData?.values) {
     </Box>
    
     {msg.chartData && (
-      <Box width="100%" maxWidth="70%">
-        {renderChart(msg.chartData)}
-      </Box>
-    )}
-
+  <Box width="100%" maxWidth="70%">
+    {renderChart(msg.chartData)}
+  </Box>
+)}
     {msg.role === 'user' && (
       <IconButton
         size="small"
@@ -498,11 +483,13 @@ if (data?.chartData?.labels && data?.chartData?.values) {
     <Box display="flex" gap={1} mr={2}>
       <Button
         variant={tool === 'chart' ? 'contained' : 'outlined'}
-        onClick={() => handleToolSelect('chart')}
-        sx={{ color: '#fff', borderColor: '#fff', textTransform: 'none', minWidth: 70,
-        padding: '2px 6px',}}
+        onClick={() => {
+          handleToolSelect('chart');
+          if (inputValue.trim()) handleSend();
+        }}
+        sx={{ color: '#fff', borderColor: '#fff', textTransform: 'none', minWidth: 70, padding: '2px 6px' }}
       >
-      Chart
+        Chart
       </Button>
       <Button
         variant={tool === 'table' ? 'contained' : 'outlined'}
