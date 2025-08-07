@@ -77,31 +77,36 @@ const ChatPage = () => {
 
     let formattedChartData = null;
 
-    // --- NEW: Parse flat table data for chart ---
-    if (
-      tool === 'chart' &&
-      data?.data?.response_type === 'table' &&
-      Array.isArray(data?.data?.data)
-    ) {
-      // Group by quarters
-      const rows = [];
-      let row = {};
-      data.data.data.forEach((item, idx) => {
-        row[item.column] = item.value;
-        // Each row has 3 columns, so push every 3rd item
-        if ((idx + 1) % 3 === 0) {
-          rows.push(row);
-          row = {};
-        }
-      });
-      // Now rows = [{quarter: 'Q4', revenue: ..., product_sales: ...}, ...]
-      const labels = rows.map(r => r.quarter);
-      const values = rows.map(r => Number(r.revenue));
-      formattedChartData = { labels, values };
-    }
-    // --- END NEW ---
+    if (tool === 'chart' && data?.data?.data) {
+      let items = data.data.data;
 
-    // Existing chartData logic (keep for other cases)
+      if (Array.isArray(items) && items.length && items[0].column && items[0].value) {
+        const rows = [];
+        let row = {};
+        items.forEach((item) => {
+          if (item.column === 'id' && Object.keys(row).length > 0) {
+            rows.push(row);
+            row = {};
+          }
+          row[item.column] = item.value;
+        });
+        if (Object.keys(row).length > 0) rows.push(row);
+
+        const labels = rows.map(r => r.quarter).filter(Boolean);
+        const values = rows.map(r => Number(r.revenue)).filter((v, i) => labels[i]);
+        if (labels.length && values.length) {
+          formattedChartData = { labels, values };
+        }
+      }
+
+      else if (Array.isArray(items) && typeof items[0] === 'object') {
+        const labels = items.map(r => r.quarter).filter(Boolean);
+        const values = items.map(r => Number(r.revenue)).filter((v, i) => labels[i]);
+        if (labels.length && values.length) {
+          formattedChartData = { labels, values };
+        }
+      }
+}
     if (!formattedChartData && data?.chartData?.labels && data?.chartData?.values) {
       const { labels, values } = data.chartData;
       formattedChartData = { labels, values };
@@ -135,7 +140,7 @@ const ChatPage = () => {
     setLoading(false);
   }
 };
- 
+
   const renderChart = (chartData) => {
   if (!chartData?.labels || !chartData?.values) return null;
 
@@ -318,7 +323,8 @@ const ChatPage = () => {
           display="flex"
           flexDirection="column"
           zIndex={2}
-          sx={{ transition: '0.3s ease-in-out' }}
+          sx={{ 
+            transition: '0.3s ease-in-out' }}
         >
           <Box display="flex" justifyContent="flex-end">
             <IconButton onClick={() => setSidebarOpen(false)} sx={{ color: '#fff' }}>
@@ -407,7 +413,7 @@ const ChatPage = () => {
       flex: 1,
       overflowY: 'auto',
       padding: 2,
-      paddingBottom: '100px', 
+      paddingBottom: '24px', 
     }}
   >
    {currentSessionMessages.map((msg, index) => (
@@ -464,21 +470,21 @@ const ChatPage = () => {
 
   </Box>
         <Paper
-      sx={{
-        position: 'fixed',
-        bottom: 9,
-        left: sidebarOpen ? 260 : 0,
-        width: `calc(100% - ${sidebarOpen ? 260 : 0}px - 16px)`,
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        height: 44,
-        p: '4x 8x',
-        borderRadius: '10px',
-        backgroundColor: '#232A3B',
-        boxShadow: '0 0 8px rgba(0,0,0,0.2)',
-        transition: 'left 0.3s ease-in-out, width 0.3s ease-in-out',
-      }}
+sx={{
+      position: 'absolute',
+      bottom: 0,
+      left: 0, 
+      width: '100%', 
+      zIndex: 1000,
+      display: 'flex',
+      alignItems: 'center',
+      height: 56,
+      px: 2,
+      borderRadius: '10px 10px 0 0',
+      backgroundColor: '#232A3B',
+      boxShadow: '0 0 8px rgba(0,0,0,0.2)',
+      transition: 'width 0.3s ease-in-out',
+    }}
       >
     <Box display="flex" gap={1} mr={2}>
       <Button
