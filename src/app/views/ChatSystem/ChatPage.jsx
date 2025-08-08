@@ -36,6 +36,7 @@ const ChatPage = () => {
   const [loading, setLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [chartData, setChartData] = useState(null);
+  
 
   const BASE_URL = process.env.REACT_APP_BASE_URL || 'https://ai.solcon.instagrp.in/api/v1/';
   const handleSend = async () => {
@@ -139,6 +140,10 @@ const ChatPage = () => {
   } finally {
     setLoading(false);
   }
+
+  setTool(null);
+  setModel('free');
+  setInputValue('');
 };
 
   const renderChart = (chartData) => {
@@ -292,7 +297,7 @@ const ChatPage = () => {
 
   const currentSessionMessages = messages.filter(msg => msg.sessionId === currentSessionId);
   return (
-    <Box display="flex" height="100vh" bgcolor="rgba(14,14,35,1)" color="#fff" position="relative"  overflow="hidden">
+    <Box display="flex" height="100vh" bgcolor="rgba(14,14,35,1)" color="#fff" position="relative" overflow="hidden">
       <Box
         sx={{
           position: 'absolute',
@@ -407,15 +412,14 @@ const ChatPage = () => {
           </Select>
         </Box>
       )}
-     <Box flex={1} display="flex" flexDirection="column" position="relative" zIndex={1}>
-  <Box
-    sx={{
-      flex: 1,
-      overflowY: 'auto',
-      padding: 2,
-      paddingBottom: '24px', 
-    }}
-  >
+     <Box flex={1} display="flex" flexDirection="column" zIndex={1}>
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: 2,
+        }}
+      >
    {currentSessionMessages.map((msg, index) => (
   <Box
     key={index}
@@ -470,21 +474,16 @@ const ChatPage = () => {
 
   </Box>
         <Paper
-sx={{
-      position: 'absolute',
-      bottom: 0,
-      left: 0, 
-      width: '100%', 
-      zIndex: 1000,
-      display: 'flex',
-      alignItems: 'center',
-      height: 56,
-      px: 2,
-      borderRadius: '10px 10px 0 0',
-      backgroundColor: '#232A3B',
-      boxShadow: '0 0 8px rgba(0,0,0,0.2)',
-      transition: 'width 0.3s ease-in-out',
-    }}
+        sx={{
+          flexShrink: 0, 
+          display: 'flex',
+          alignItems: 'center',
+          height: 56,
+          px: 2,
+          borderRadius: '10px 10px 0 0',
+          backgroundColor: '#232A3B',
+          boxShadow: '0 0 8px rgba(0,0,0,0.2)',
+  }}
       >
     <Box display="flex" gap={1} mr={2}>
       <Button
